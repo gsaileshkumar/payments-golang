@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+
+  db:
+    image: postgres:12
+    container_name: db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=payments
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+
+  payments:
+    image: payments
+    container_name: payments
+    build:
+      context: ./payments
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=payments
+    depends_on:
+      - db
+
