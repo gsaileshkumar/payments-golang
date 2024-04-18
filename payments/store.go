@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,18 +30,29 @@ func NewStore(config *Config) *SqlStore {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
 
-	pool, err := pgxpool.New(context.Background(), connStr)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
-	}
+	var pool *pgxpool.Pool
+	var err error
 
-	err = pool.Ping(context.Background())
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
-	}
+	maxDuration := time.Minute * 5
+	startTime := time.Now()
 
-	log.Println("Database connection successfully established")
-	return &SqlStore{db: pool}
+	for {
+		pool, err = pgxpool.New(context.Background(), connStr)
+		if err == nil {
+			err = pool.Ping(context.Background())
+			if err == nil {
+				log.Println("Database connection successfully established")
+				return &SqlStore{db: pool}
+			}
+		}
+
+		if time.Since(startTime) > maxDuration {
+			log.Fatalf("Unable to connect to database after retries: %v", err)
+		}
+
+		log.Printf("Failed to connect to database: %v. Retrying in 10 seconds...", err)
+		time.Sleep(10 * time.Second)
+	}
 }
 
 func (s *SqlStore) GetAccount(ctx context.Context, accountId uint32) (*Account, error) {
