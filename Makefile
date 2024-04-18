@@ -1,4 +1,4 @@
-.PHONY: up down build clean logs test db-up db-down local-run local-build docker-build docker-run docker-stop
+.PHONY: up down build clean logs test db-up db-down local-run local-build docker-build docker-run docker-stop api-test
 
 # Binary name for local development
 BINARY_NAME=payments
@@ -65,3 +65,7 @@ test:
 # Clean up Docker images and volumes
 clean:
 	docker system prune -af --volumes
+
+# Run integration test
+api-test:
+	bash integration_test.sh

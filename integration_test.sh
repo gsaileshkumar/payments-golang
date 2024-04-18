@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Ensure DB is clean, before executing this test"
+
 # API endpoint
 URL="http://localhost:8080/accounts"
 
