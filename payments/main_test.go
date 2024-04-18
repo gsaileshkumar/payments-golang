@@ -117,7 +117,7 @@ func TestTransferAmountHandler_Success(t *testing.T) {
 		Amount:               "100.00",
 	}
 	body, _ := json.Marshal(transaction)
-	req, _ := http.NewRequest("POST", "/transfer", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", "/transactions", bytes.NewBuffer(body))
 	rr := httptest.NewRecorder()
 
 	handler := http.HandlerFunc(app.TransferAmountHandler)
@@ -145,7 +145,7 @@ func TestTransferAmountHandler_InvalidInput(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			body, _ := json.Marshal(tc.payload)
-			req, _ := http.NewRequest("POST", "/transfer", bytes.NewBuffer(body))
+			req, _ := http.NewRequest("POST", "/transactions", bytes.NewBuffer(body))
 			rr := httptest.NewRecorder()
 
 			handler := http.HandlerFunc(app.TransferAmountHandler)
@@ -168,7 +168,7 @@ func TestTransferAmountHandler_DbError(t *testing.T) {
 		Amount:               "100.00",
 	}
 	body, _ := json.Marshal(transaction)
-	req, _ := http.NewRequest("POST", "/transfer", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("POST", "/transactions", bytes.NewBuffer(body))
 	rr := httptest.NewRecorder()
 
 	handler := http.HandlerFunc(app.TransferAmountHandler)
@@ -176,4 +176,22 @@ func TestTransferAmountHandler_DbError(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	mockStore.AssertExpectations(t)
+}
+
+func TestCatchAllHandler(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/nonexistentpath", nil)
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(catchAllHandler)
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+
+	// Check the response body is what we expect.
+	expected := map[string]string{"error": "Route not found"}
+	var actual map[string]string
+	err := json.NewDecoder(rr.Body).Decode(&actual)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }
