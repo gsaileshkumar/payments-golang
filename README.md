@@ -31,6 +31,7 @@ This project is built with several key assumptions that influence its design and
 ### Prerequisites
 
 - Docker and Docker Compose must be installed on your machine.
+- Go version 1.22.2 (For development)
 
 ### Setting Up and Running
 
