@@ -17,6 +17,10 @@ This project is built with several key assumptions that influence its design and
 
 - **PostgreSQL Database**: The system assumes the use of PostgreSQL for data storage. PostgreSQL's features such as ACID compliance, transaction management, and robustness are integral to the application's data handling strategies.
 
+- **Decimal Precision**: The application uses the `"github.com/shopspring/decimal"` package for all monetary calculations to ensure precision and avoid floating-point arithmetic issues. This is critical for financial applications where accuracy in calculations and storage of monetary values is paramount.
+
+- **High Precision Database Storage**: Monetary values are stored in the database using the `DECIMAL(21, 6)` data type. This allows for a high degree of precision, accommodating up to 15 digits before the decimal point and 6 digits after, ensuring that the application can handle large sums of money with fine-grained decimal accuracy.
+
 - **SERIALIZABLE Isolation Level**: All transactions within the database are handled at the `SERIALIZABLE` isolation level. This is the highest level of isolation and is assumed to prevent lost updates, dirty reads, and other transaction anomalies, at the cost of potential performance overhead due to increased locking and conflict resolution.
 
 - **Security Practices**: Basic security practices are assumed to be in place, including secure handling of user data and credentials. However, specific details like OAuth implementation or advanced security measures may need to be tailored according to user needs.
