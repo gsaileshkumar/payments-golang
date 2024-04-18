@@ -25,6 +25,7 @@ This project is built with several key assumptions that influence its design and
 
 - **Security Practices**: Basic security practices are assumed to be in place, including secure handling of user data and credentials. However, specific details like OAuth implementation or advanced security measures may need to be tailored according to user needs.
 
+This service still can be improved in lot of ways, and some are mentioned in the ***[IMPROVEMENTS file](IMPROVEMENTS.md)***
 
 ## Getting Started
 
