@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/shopspring/decimal"
 )
@@ -29,7 +30,7 @@ func (p *Payments) CreateAccountHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if account.AccountId == "" || account.Balance == "" {
+	if account.AccountId == 0 || account.Balance == "" {
 		sendJSONError(w, ErrBadRequest, http.StatusBadRequest)
 		return
 	}
@@ -73,7 +74,13 @@ func (p *Payments) GetAccounDetailsHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	account, err := p.store.GetAccount(r.Context(), accountId)
+	accountIdInt, err := strconv.ParseUint(accountId, 10, 32)
+	if err != nil {
+		sendJSONError(w, ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	account, err := p.store.GetAccount(r.Context(), uint32(accountIdInt))
 	if err != nil {
 		sendJSONError(w, err, http.StatusBadRequest)
 		return
@@ -95,7 +102,7 @@ func (p *Payments) TransferAmountHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	if transaction.SourceAccountID == transaction.DestinationAccountID ||
-		transaction.SourceAccountID == "" || transaction.DestinationAccountID == "" ||
+		transaction.SourceAccountID == 0 || transaction.DestinationAccountID == 0 ||
 		transaction.Amount == "" {
 		sendJSONError(w, ErrBadRequest, http.StatusBadRequest)
 		return

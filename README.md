@@ -63,9 +63,9 @@ These variables are set in the docker-compose.yml for Docker-based setups and sh
 
 ## API Documentation
 
-- **Create Account**: POST /accounts with JSON body {"account_id": "123", "balance": 100.00}
+- **Create Account**: POST /accounts with JSON body {"account_id": 123, "balance": "100.00"}
 - **Get Account**: GET /accounts/123
-- **Transfer Funds**: POST /transactions with JSON body {"source_account_id": "123", "destination_account_id": "234", "amount": 50.00}
+- **Transfer Funds**: POST /transactions with JSON body {"source_account_id": 123, "destination_account_id": 234, "amount": "50.00"}
 
 
 ## Local Development

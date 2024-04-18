@@ -7,12 +7,12 @@ import (
 )
 
 type Account struct {
-	AccountId string
+	AccountId uint32
 	Balance   string
 }
 
 type AccountStore interface {
-	GetAccount(ctx context.Context, accountId string) (*Account, error)
-	CreateAccount(ctx context.Context, accountId string, balance decimal.Decimal) (*Account, error)
-	Transfer(ctx context.Context, fromID, toID string, amount decimal.Decimal) error
+	GetAccount(ctx context.Context, accountId uint32) (*Account, error)
+	CreateAccount(ctx context.Context, accountId uint32, balance decimal.Decimal) (*Account, error)
+	Transfer(ctx context.Context, srcAccId, destAccId uint32, amount decimal.Decimal) error
 }

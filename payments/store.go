@@ -34,11 +34,16 @@ func NewStore(config *Config) *SqlStore {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
 
+	err = pool.Ping(context.Background())
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v", err)
+	}
+
 	log.Println("Database connection successfully established")
 	return &SqlStore{db: pool}
 }
 
-func (s *SqlStore) GetAccount(ctx context.Context, accountId string) (*Account, error) {
+func (s *SqlStore) GetAccount(ctx context.Context, accountId uint32) (*Account, error) {
 	account := &Account{}
 	err := s.db.QueryRow(ctx, "SELECT id, balance FROM accounts WHERE id = $1", accountId).Scan(&account.AccountId, &account.Balance)
 	if err != nil {
@@ -48,7 +53,7 @@ func (s *SqlStore) GetAccount(ctx context.Context, accountId string) (*Account, 
 	return account, nil
 }
 
-func (s *SqlStore) CreateAccount(ctx context.Context, accountId string, balance decimal.Decimal) (*Account, error) {
+func (s *SqlStore) CreateAccount(ctx context.Context, accountId uint32, balance decimal.Decimal) (*Account, error) {
 	account := &Account{}
 	err := s.db.QueryRow(ctx, "INSERT INTO accounts (id, balance) VALUES ($1, $2) RETURNING id, balance", accountId, balance).Scan(&account.AccountId, &account.Balance)
 	if err != nil {
@@ -58,7 +63,7 @@ func (s *SqlStore) CreateAccount(ctx context.Context, accountId string, balance 
 	return account, nil
 }
 
-func (s *SqlStore) Transfer(ctx context.Context, srcAcc, destAcc string, amount decimal.Decimal) error {
+func (s *SqlStore) Transfer(ctx context.Context, srcAcc, destAcc uint32, amount decimal.Decimal) error {
 	txOptions := pgx.TxOptions{
 		IsoLevel: pgx.Serializable, // Specify the isolation level as Serializable
 	}
@@ -70,7 +75,7 @@ func (s *SqlStore) Transfer(ctx context.Context, srcAcc, destAcc string, amount 
 	defer tx.Rollback(ctx)
 
 	// Determine the order of account IDs to prevent deadlocks
-	var firstAcc, secondAcc string
+	var firstAcc, secondAcc uint32
 	var firstAmount, secondAmount decimal.Decimal
 	if srcAcc < destAcc {
 		firstAcc, secondAcc = srcAcc, destAcc
@@ -82,7 +87,7 @@ func (s *SqlStore) Transfer(ctx context.Context, srcAcc, destAcc string, amount 
 		secondAmount = amount.Neg() // Debit amount (negative)
 	}
 
-	log.Printf("Transaction processing from account %s to account %s for amount %s", srcAcc, destAcc, amount)
+	log.Printf("Transaction processing from account %d to account %d for amount %s", srcAcc, destAcc, amount)
 
 	// Check balance of the source account to ensure sufficient funds are available
 	var balance decimal.Decimal
@@ -92,10 +97,10 @@ func (s *SqlStore) Transfer(ctx context.Context, srcAcc, destAcc string, amount 
 		return ErrAccountRetrieval
 	}
 
-	log.Printf("Balance of source account %s is %s", srcAcc, balance)
+	log.Printf("Balance of source account %d is %d", srcAcc, balance)
 
 	if balance.LessThan(amount) {
-		log.Printf("Insufficient funds in source account %s of %s", srcAcc, balance)
+		log.Printf("Insufficient funds in source account %d of %d", srcAcc, balance)
 		return ErrInsufficientFunds
 	}
 
@@ -128,6 +133,6 @@ func (s *SqlStore) Transfer(ctx context.Context, srcAcc, destAcc string, amount 
 		return ErrCommitingTx
 	}
 
-	log.Printf("Transaction successfully processed from account %s to account %s for amount %s", srcAcc, destAcc, amount)
+	log.Printf("Transaction successfully processed from account %d to account %d for amount %s", srcAcc, destAcc, amount)
 	return nil
 }
